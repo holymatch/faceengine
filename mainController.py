@@ -36,7 +36,8 @@ class Face(Resource):
     def post(self):
         data = request.get_json()
         save_know_face(data['FaceData'], data['Identify'])
-        return jsonify({"Name" : "Tester", "Detail" : "This is a testing person\nThis the second line of testing data", "Score" : 7.3})  # Fetches first column that is Employee ID
+        return jsonify({"Name" : "Tester", "Detail" : "This is a testing person\nThis the second line of testing data",
+                        "Score" : 7.3})  # Fetches first column that is Employee ID
 
 
 class Tracks(Resource):
@@ -58,7 +59,8 @@ class RecognizePerson(Resource):
         if request.method == 'POST':
             start = timeit.default_timer()
             try:
-                result = recognition(request.get_json())
+                request_data = request.get_json();
+                result = recognition(request_data["FaceData"])
             except Exception as e:
                 result = {"ReturnCode": 500, "message": e.message}
             end = timeit.default_timer()
