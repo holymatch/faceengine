@@ -13,6 +13,7 @@ import logging
 
 db_connect = create_engine('sqlite:///chinook.db')
 app = Flask(__name__)
+app.config['APPLICATION_ROOT'] = '/faceengine'
 api = Api(app)
 know_face_path = "D:/OpenFace/FaceDB/know_face"
 # Cache the encoding
@@ -22,13 +23,13 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def load_know_face(identify):
-    with open(join(know_face_path, identify+'.jpg'), "rb") as image_file:
+    with open(join(know_face_path, str(identify)+'.jpg'), "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read())
         return encoded_string
 
 
 def save_know_face(face_data, identify):
-    with open(join(know_face_path, identify+'.jpg'), "wb") as fh:
+    with open(join(know_face_path, str(identify)+'.jpg'), "wb") as fh:
         fh.write(base64.b64decode(face_data))
 
 
@@ -36,8 +37,8 @@ class Face(Resource):
     def post(self):
         data = request.get_json()
         save_know_face(data['FaceData'], data['Identify'])
-        return jsonify({"Name" : "Tester", "Detail" : "This is a testing person\nThis the second line of testing data",
-                        "Score" : 7.3})  # Fetches first column that is Employee ID
+        return jsonify({"ReturnCode": 200, "message": "Known face added"})
+        # Fetches first column that is Employee ID
 
 
 class Tracks(Resource):
@@ -59,7 +60,7 @@ class RecognizePerson(Resource):
         if request.method == 'POST':
             start = timeit.default_timer()
             try:
-                request_data = request.get_json();
+                request_data = request.get_json()
                 result = recognition(request_data["FaceData"])
             except Exception as e:
                 result = {"ReturnCode": 500, "message": e.message}
