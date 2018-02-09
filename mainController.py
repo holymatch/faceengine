@@ -33,11 +33,13 @@ def save_know_face(face_data, identify):
         fh.write(base64.b64decode(face_data))
 
 
-class Face(Resource):
+class NewFace(Resource):
     def post(self):
         data = request.get_json()
+        logging.debug("Is Json {0}".format(request.is_json) )
+        logging.debug("Request is {0}, request.get_json() is {1}".format(request, request.get_json()))
         save_know_face(data['FaceData'], data['Identify'])
-        return jsonify({"ReturnCode": 200, "message": "Known face added"})
+        return jsonify({"ReturnCode": 200, "Message": "Known face added"})
         # Fetches first column that is Employee ID
 
 
@@ -63,7 +65,7 @@ class RecognizePerson(Resource):
                 request_data = request.get_json()
                 result = recognition(request_data["FaceData"])
             except Exception as e:
-                result = {"ReturnCode": 500, "message": e.message}
+                result = {"ReturnCode": 500, "Message": e.message}
             end = timeit.default_timer()
             logging.info("Total execution time of recognize: %s", str(end - start))
             return jsonify(result)
@@ -84,7 +86,7 @@ def recognition(image):
     if len(unknown_faces) > 0:
         image_to_test_encoding = unknown_faces[0]
     else:
-        return {"ReturnCode": 404, "message": "No face found in input image"}
+        return {"ReturnCode": 404, "Message": "No face found in input image"}
     know_face_list = [f for f in listdir(know_face_path) if isfile(join(know_face_path, f))]
     # if the know face size is change, reload the encoding list
     logging.debug("Len of know_face_list {0} and known_encodings {1}".format(len(know_face_list), len(known_encodings)))
@@ -121,20 +123,20 @@ def recognition(image):
     # print("know face", found_know_faces[min_index])
     if min_value < 0.4:
         face_result = {"ReturnCode": 200,
-                       "message": "Find match face",
-                       "Content": {"name": found_know_faces[min_index],
-                                   "score": min_value}}
+                       "Message": "Find match face",
+                       "Content": {"Identify": found_know_faces[min_index],
+                                   "Score": min_value}}
     else:
         face_result = {"ReturnCode": 404,
-                       "message": "no known face found",
-                       "Content": {"name": found_know_faces[min_index],
-                                   "score": min_value}}
+                       "Message": "no known face found",
+                       "Content": {"Identify": found_know_faces[min_index],
+                                   "Score": min_value}}
     total_end = timeit.default_timer()
     logging.info("Total process time for total time: %s", str(total_end - total_start))
     return face_result
 
 
-api.add_resource(Face, '/face')  # Route_1
+api.add_resource(NewFace, '/face')  # Route_1
 api.add_resource(Tracks, '/tracks')  # Route_2
 api.add_resource(KnowFace, '/face/<face_id>')  # Route_3
 api.add_resource(RecognizePerson, '/recognize')
