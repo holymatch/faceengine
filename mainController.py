@@ -21,6 +21,7 @@ know_face_path = "D:/OpenFace/FaceDB/know_face"
 known_encodings = []
 found_know_faces = []
 logging.basicConfig(level=logging.INFO)
+IDENTIFY_THRESHOLD = 0.4
 
 
 class Tracks(Resource):
@@ -59,14 +60,19 @@ class FaceController(Resource):
             return {"ReturnCode": 404, "Message": "No face found in input image"}
 
     def delete(self, face_id):
-        face_file = join(know_face_path, str(face_id)+'.dat')
+        logging.debug("Delete face called. ")
+        face_file = join(know_face_path, str(face_id)+'.dat.npy')
+        logging.debug("File path: {0}".format(face_file))
         if path.exists(face_file):
+            logging.debug("Delete file: {0}".format(face_file))
             try:
                 remove(face_file)
-                return 200
+                known_encodings[:] = []
+                return "Ok", 200
             except OSError as e:
-                return 500
-        return 500
+                return e.message, 500
+        else:
+            return "File Not Found", 500
 
 
 def load_know_face(identify):
@@ -143,7 +149,7 @@ def recognition(image):
     # print("min index", min_index)
     # print("min value", min_value)
     # print("know face", found_know_faces[min_index])
-    if min_value < 0.4:
+    if min_value < IDENTIFY_THRESHOLD:
         face_result = {"ReturnCode": 200,
                        "Message": "Find match face",
                        "Content": {"Identify": found_know_faces[min_index],
@@ -159,7 +165,7 @@ def recognition(image):
 
 
 api.add_resource(Tracks, '/tracks')  # Route_2
-api.add_resource(FaceController, '/face', '/face/<int:face_id>', endpoint='face_id')
+api.add_resource(FaceController, '/face', '/face/<int:face_id>')
 api.add_resource(RecognizePerson, '/recognize')
 
 
