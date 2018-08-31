@@ -1,7 +1,6 @@
 import operator
 from flask import Flask, request
 from flask_restful import Resource, Api
-from sqlalchemy import create_engine
 from flask_jsonpify import jsonify
 import base64
 import face_recognition
@@ -12,25 +11,15 @@ import timeit
 import logging
 import numpy
 
-db_connect = create_engine('sqlite:///chinook.db')
 app = Flask(__name__)
 app.config['APPLICATION_ROOT'] = '/faceengine'
 api = Api(app)
-know_face_path = "D:/OpenFace/FaceDB/know_face"
+know_face_path = "/Data/KnowFace"
 # Cache the encoding
 known_encodings = []
 found_know_faces = []
 logging.basicConfig(level=logging.INFO)
 IDENTIFY_THRESHOLD = 0.4
-
-
-class Tracks(Resource):
-    def get(self):
-        conn = db_connect.connect()
-        query = conn.execute("select trackid, name, composer, unitprice from tracks;")
-        result = {'data': [dict(zip(tuple(query.keys()), i)) for i in query.cursor]}
-        return jsonify(result)
-
 
 class RecognizePerson(Resource):
     def post(self):
@@ -164,7 +153,6 @@ def recognition(image):
     return face_result
 
 
-api.add_resource(Tracks, '/tracks')  # Route_2
 api.add_resource(FaceController, '/face', '/face/<int:face_id>')
 api.add_resource(RecognizePerson, '/recognize')
 
