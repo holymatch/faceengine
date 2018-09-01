@@ -29,7 +29,7 @@ class RecognizePerson(Resource):
                 request_data = request.get_json()
                 result = recognition(request_data["FaceData"])
             except Exception as e:
-                result = {"ReturnCode": 500, "Message": e.message}
+                result = {"ReturnCode": 500, "Message": str(e)}
             end = timeit.default_timer()
             logging.info("Total execution time of recognize: %s", str(end - start))
             return jsonify(result)
@@ -59,7 +59,7 @@ class FaceController(Resource):
                 known_encodings[:] = []
                 return "Ok", 200
             except OSError as e:
-                return e.message, 500
+                return str(e), 500
         else:
             return "File Not Found", 500
 
